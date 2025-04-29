@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>多焦点レンズ診断</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- noUiSlider のスタイル -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; }
+    h1 { text-align:center; margin-bottom:0.2em; }
+    p { text-align:center; color:#555; }
+
+    /* スライダー帯の立体感 */
+    #multi-slider.noUi-target {
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+      border-radius: 15px;
+      height: 20px;
+      margin: 30px 0;
+    }
+    /* ハンドルの立体感 */
+    .noUi-handle {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      border-radius: 50%;
+      height: 28px;
+      width: 28px;
+      top: -4px;
+      background: #fff;
+      border: 2px solid #888;
+    }
+
+    /* 各セグメントを個別色で塗る */
+    .noUi-connect { background: transparent; }
+    #multi-slider .noUi-connect:nth-child(1) { background: #4CAF50; }   /* 鮮明さ */
+    #multi-slider .noUi-connect:nth-child(2) { background: #2196F3; }   /* 運転 */
+    #multi-slider .noUi-connect:nth-child(3) { background: #FFC107; }   /* パソコン */
+    #multi-slider .noUi-connect:nth-child(4) { background: #E91E63; }   /* 読書 */
+
+    /* ラベル表示用 */
+    #labels { position: relative; height: 0; }
+    .segment-label {
+      position: absolute;
+      color: white;
+      font-size: 0.8em;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* 結果表示 */
+    #results { white-space: pre-wrap; margin-top:20px; font-size: 0.95em; }
+  </style>
+</head>
+<body>
+  <h1>👁 多焦点レンズ診断</h1>
+  <p>３本のハンドルをドラッグして「鮮明さ⇔運転⇔パソコン⇔読書」のバランスを調整してください。</p>
+
+  <!-- スライダー本体 -->
+  <div id="multi-slider"></div>
+  <!-- セグメント名ラベル配置領域 -->
+  <div id="labels"></div>
+  <!-- 診断結果 -->
+  <pre id="results"></pre>
+
+  <!-- noUiSlider のスクリプト -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
+  <script>
+    // 正規化済みスコアデータ（各項目Max25）
+    const lensData = [
+      {name:"FineVision HP", score:[25.00,12.99,16.49,21.72]},
+      {name:"PanOptix",     score:[21.26,17.01,19.23,22.22]},
+      {name:"Vivity",       score:[15.63,22.22,21.98,24.75]},
+      {name:"Monofocal",    score:[ 5.26,25.00,13.73,25.00]},
+    ];
+
+    const slider = document.getElementById('multi-slider');
+
+    // 1本の帯に3つのハンドル、4つのコネクトセグメント
+    noUiSlider.create(slider, {
+      start: [25, 50, 75],
+      connect: [true, true, true, true],
+      range: { min: 0, max: 100 },
+      step: 1,
+      behaviour: 'drag',
+      tooltips: [true, true, true]
+    });
+
+    const labelsEl = document.getElementById('labels');
+    const resultsEl = document.getElementById('results');
+    const names = ['鮮明さ','運転','パソコン','読書'];
+
+    // セグメント名ラベル更新
+    function updateLabels(vals) {
+      labelsEl.innerHTML = '';
+      const a = +vals[0], b = +vals[1], c = +vals[2];
+      const seg = [a, b-a, c-b, 100-c];
+      let acc = 0;
+      seg.forEach((pct,i)=>{
+        const x = acc + pct/2;
+        const span = document.createElement('span');
+        span.className = 'segment-label';
+        span.style.left = x + '%';
+        span.style.top = (slider.getBoundingClientRect().height/2 + 12) + 'px';
+        span.textContent = names[i];
+        labelsEl.appendChild(span);
+        acc += pct;
+      });
+    }
+
+    // TOP3 診断結果更新
+    function updateResults(vals) {
+      const a = +vals[0], b = +vals[1], c = +vals[2];
+      if (!(a <= b && b <= c)) return;
+
+      const raw = [a, b-a, c-b, 100-c];
+      const total = raw.reduce((s,x)=>s+x,0);
+      const w = raw.map(x=>x/total);
+
+      const scored = lensData.map(l=>{
+        const s = l.score.reduce((sum,v,i)=>sum + v*w[i],0);
+        return {name:l.name, score:s};
+      })
+      .sort((p,q)=>q.score-p.score)
+      .slice(0,3);
+
+      let out = '【おすすめレンズTOP3】\n';
+      scored.forEach((l,i)=>{
+        out += `\n🏅 第${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`;
+      });
+      resultsEl.textContent = out;
+    }
+
+    // ツールチップを書き換えて「各セグメント％」表示
+    slider.noUiSlider.on('update', (values) => {
+      const a = +values[0], b = +values[1], c = +values[2];
+      const seg = [a, b-a, c-b, 100-c];
+
+      // 各ハンドルのツールチップ部分を取得し上書き
+      const handles = slider.querySelectorAll('.noUi-handle');
+      handles.forEach((h,i)=>{
+        const tip = h.querySelector('.noUi-tooltip');
+        if (tip) tip.innerHTML = seg[i].toFixed(1) + '%';
+      });
+
+      updateLabels(values);
+      updateResults(values);
+    });
+
+    // 初期表示：handle tooltips と結果を正しく表示するため set をトリガー
+    slider.noUiSlider.set([25,50,75]);
+  </script>
+</body>
+</html>
