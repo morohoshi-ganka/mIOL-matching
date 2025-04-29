@@ -53,18 +53,18 @@
     #labels { position: relative; height: 0; }
     .segment-label {
       position: absolute;
-      color: black;
-      font-size: 0.85em;
-      text-shadow: 0 1px 1px rgba(255,255,255,0.8);
-      transform: translate(-50%, -50%);
       pointer-events: none;
       white-space: nowrap;
+      transform: translate(-50%, -50%);
+      text-shadow: 0 1px 1px rgba(255,255,255,0.8);
     }
+    .name-label { color: black; font-size: 1.1em; }
+    .pct-label { color: black; font-size: 0.9em; }
 
     /* 決定ボタン */
     #confirm-btn {
       display: block;
-      margin: 20px auto;
+      margin: 60px auto 0;
       padding: 10px 20px;
       font-size: 1em;
       background: #1976D2;
@@ -79,19 +79,16 @@
 
     /* 結果表示 */
     #results {
-      white-space: pre-wrap;
-      margin-top: 80px;
+      margin-top: 30px;
       font-size: 1em;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
+    .result-item { margin: 10px 0; }
+    .result-item:first-child { font-size: 1.2em; font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>👁 多焦点レンズ診断</h1>
-  <p>３本のハンドルをドラッグして「鮮明さ⇔運転⇔パソコン⇔読書」のバランスを調整し、「決定」ボタンを押してください。</p>
+  <p>３本のハンドルをドラッグして「鮮明さ⇔運転⇔パソコン⇔読書」のバランスを調整し、<br>「決定」ボタンを押してください。</p>
 
   <!-- スライダー本体 -->
   <div id="multi-slider"></div>
@@ -100,7 +97,7 @@
   <!-- 決定ボタン -->
   <button id="confirm-btn">決定</button>
   <!-- 診断結果 -->
-  <pre id="results"></pre>
+  <div id="results"></div>
 
   <!-- noUiSlider のスクリプト -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
@@ -131,13 +128,13 @@
 
     // 初期ラベル（名前のみ）
     (function() {
-      const a=25, b=50, c=75;
+      const [a,b,c] = [25,50,75];
       const seg=[a, b-a, c-b, 100-c];
       let acc=0;
       seg.forEach((pct,i)=>{
         const x=acc + pct/2;
         const span=document.createElement('span');
-        span.className='segment-label';
+        span.className='segment-label name-label';
         span.style.left=x+'%';
         span.style.top=(slider.getBoundingClientRect().height/2 + 10)+'px';
         span.textContent=names[i];
@@ -148,10 +145,9 @@
 
     // 更新時：％ラベルと非表示ツールチップ
     slider.noUiSlider.on('update', (values) => {
-      // パーセントラベル更新
-      const a = +values[0], b = +values[1], c = +values[2];
+      const [a,b,c] = values.map(v=>+v);
       const seg=[a, b-a, c-b, 100-c];
-      // クリア旧％ラベル
+      // 古い％ラベル削除
       document.querySelectorAll('.pct-label').forEach(el=>el.remove());
       let acc=0;
       seg.forEach((pct,i)=>{
@@ -177,9 +173,15 @@
       const w=raw.map(x=>x/total);
       const scored=lensData.map(l=>({name:l.name,score:l.score.reduce((sum,v,i)=>sum + v*w[i],0)}))
         .sort((p,q)=>q.score-p.score).slice(0,3);
-      let out='あなたにマッチするレンズは・・・\n';
-      scored.forEach((l,i)=>{ out+=`\n${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`; });
-      resultsEl.textContent=out;
+      // 結果表示実装
+      resultsEl.innerHTML = '';
+      scored.forEach((l,i)=>{
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.textContent = `${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`;
+        resultsEl.appendChild(div);
+        if(i===0) div.style.fontSize='1.2em';
+      });
     }
 
     // 決定ボタンクリック
