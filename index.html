@@ -12,62 +12,93 @@
   />
 
   <style>
-    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; }
+    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; background:#f5f5f5; }
     h1 { text-align:center; margin-bottom:0.2em; }
     p { text-align:center; color:#555; }
 
     /* スライダー帯の立体感 */
     #multi-slider.noUi-target {
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
-      border-radius: 15px;
-      height: 20px;
-      margin: 30px 0;
+      background: #ddd;
+      box-shadow:
+        inset 0 4px 8px rgba(0,0,0,0.2),
+        inset 0 -2px 4px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      height: 24px;
+      margin: 40px 0;
     }
     /* ハンドルの立体感 */
     .noUi-handle {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
       border-radius: 50%;
-      height: 28px;
-      width: 28px;
+      height: 32px;
+      width: 32px;
       top: -4px;
       background: #fff;
-      border: 2px solid #888;
+      border: 2px solid rgba(0,0,0,0.3);
+      transition: transform 0.1s;
     }
+    .noUi-handle:hover { transform: scale(1.1); }
 
     /* ツールチップ非表示 */
     .noUi-tooltip { display: none !important; }
 
     /* 各セグメントを個別色で塗る */
     .noUi-connect { background: transparent; }
-    #multi-slider .noUi-connect:nth-child(1) { background: #4CAF50; }   /* 鮮明さ */
-    #multi-slider .noUi-connect:nth-child(2) { background: #2196F3; }   /* 運転 */
-    #multi-slider .noUi-connect:nth-child(3) { background: #FFC107; }   /* パソコン */
-    #multi-slider .noUi-connect:nth-child(4) { background: #E91E63; }   /* 読書 */
+    #multi-slider .noUi-connect:nth-child(1) { background: #4CAF50; }
+    #multi-slider .noUi-connect:nth-child(2) { background: #2196F3; }
+    #multi-slider .noUi-connect:nth-child(3) { background: #FFC107; }
+    #multi-slider .noUi-connect:nth-child(4) { background: #E91E63; }
 
     /* ラベル表示用 */
     #labels { position: relative; height: 0; }
     .segment-label {
       position: absolute;
-      color: black; /* 文字色を黒に変更 */
-      font-size: 0.9em;
-      text-shadow: 0 1px 2px rgba(255,255,255,0.6); /* 白い縁取りで可読性確保 */
+      color: black;
+      font-size: 0.85em;
+      text-shadow: 0 1px 1px rgba(255,255,255,0.8);
       transform: translate(-50%, -50%);
       pointer-events: none;
       white-space: nowrap;
     }
 
+    /* 決定ボタン */
+    #confirm-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #1976D2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transition: background 0.2s;
+    }
+    #confirm-btn:hover { background: #1565C0; }
+
     /* 結果表示 */
-    #results { white-space: pre-wrap; margin-top:20px; font-size: 0.95em; }
+    #results {
+      white-space: pre-wrap;
+      margin-top: 80px;
+      font-size: 1em;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
   <h1>👁 多焦点レンズ診断</h1>
-  <p>３本のハンドルをドラッグして「鮮明さ⇔運転⇔パソコン⇔読書」のバランスを調整してください。</p>
+  <p>３本のハンドルをドラッグして「鮮明さ⇔運転⇔パソコン⇔読書」のバランスを調整し、「決定」ボタンを押してください。</p>
 
   <!-- スライダー本体 -->
   <div id="multi-slider"></div>
   <!-- セグメント名＋％ラベル配置領域 -->
   <div id="labels"></div>
+  <!-- 決定ボタン -->
+  <button id="confirm-btn">決定</button>
   <!-- 診断結果 -->
   <pre id="results"></pre>
 
@@ -83,8 +114,12 @@
     ];
 
     const slider = document.getElementById('multi-slider');
+    const labelsEl = document.getElementById('labels');
+    const resultsEl = document.getElementById('results');
+    const confirmBtn = document.getElementById('confirm-btn');
+    const names = ['鮮明さ','運転','パソコン','読書'];
 
-    // 1本の帯に3つのハンドル、4つのコネクトセグメント
+    // スライダー初期化
     noUiSlider.create(slider, {
       start: [25, 50, 75],
       connect: [true, true, true, true],
@@ -94,60 +129,63 @@
       tooltips: [true, true, true]
     });
 
-    const labelsEl = document.getElementById('labels');
-    const resultsEl = document.getElementById('results');
-    const names = ['鮮明さ','運転','パソコン','読書'];
-
-    // セグメント名＋％ラベル更新
-    function updateLabels(vals) {
-      labelsEl.innerHTML = '';
-      const a = +vals[0], b = +vals[1], c = +vals[2];
-      const seg = [a, b-a, c-b, 100-c];
-      let acc = 0;
+    // 初期ラベル（名前のみ）
+    (function() {
+      const a=25, b=50, c=75;
+      const seg=[a, b-a, c-b, 100-c];
+      let acc=0;
       seg.forEach((pct,i)=>{
-        const x = acc + pct/2;
-        const span = document.createElement('span');
-        span.className = 'segment-label';
-        span.style.left = x + '%';
-        span.style.top = (slider.getBoundingClientRect().height/2 + 10) + 'px';
-        span.textContent = names[i] + ' ' + pct.toFixed(1) + '%';
+        const x=acc + pct/2;
+        const span=document.createElement('span');
+        span.className='segment-label';
+        span.style.left=x+'%';
+        span.style.top=(slider.getBoundingClientRect().height/2 + 10)+'px';
+        span.textContent=names[i];
         labelsEl.appendChild(span);
-        acc += pct;
+        acc+=pct;
       });
-    }
+    })();
 
-    // TOP3 診断結果更新
-    function updateResults(vals) {
-      const a = +vals[0], b = +vals[1], c = +vals[2];
-      if (!(a <= b && b <= c)) return;
-
-      const raw = [a, b-a, c-b, 100-c];
-      const total = raw.reduce((s,x)=>s+x,0);
-      const w = raw.map(x=>x/total);
-
-      const scored = lensData.map(l=>{
-        const s = l.score.reduce((sum,v,i)=>sum + v*w[i],0);
-        return {name:l.name, score:s};
-      })
-      .sort((p,q)=>q.score-p.score)
-      .slice(0,3);
-
-      let out = '【おすすめレンズTOP3】\n';
-      scored.forEach((l,i)=>{
-        out += `\n🏅 第${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`;
-      });
-      resultsEl.textContent = out;
-    }
-
-    // 更新イベント
+    // 更新時：％ラベルと非表示ツールチップ
     slider.noUiSlider.on('update', (values) => {
-      // ツールチップは非表示
+      // パーセントラベル更新
+      const a = +values[0], b = +values[1], c = +values[2];
+      const seg=[a, b-a, c-b, 100-c];
+      // クリア旧％ラベル
+      document.querySelectorAll('.pct-label').forEach(el=>el.remove());
+      let acc=0;
+      seg.forEach((pct,i)=>{
+        const x=acc + pct/2;
+        const span=document.createElement('span');
+        span.className='segment-label pct-label';
+        span.style.left=x+'%';
+        span.style.top=(slider.getBoundingClientRect().height/2 + 28)+'px';
+        span.textContent=pct.toFixed(1)+'%';
+        labelsEl.appendChild(span);
+        acc+=pct;
+      });
+      // ツールチップ非表示
       slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
-      updateLabels(values);
-      updateResults(values);
     });
 
-    // 初期表示設定
+    // 診断ロジック
+    function diagnose() {
+      const [a,b,c] = slider.noUiSlider.get().map(v=>+v);
+      if(!(a<=b && b<=c)) return;
+      const raw=[a, b-a, c-b, 100-c];
+      const total=raw.reduce((s,x)=>s+x,0);
+      const w=raw.map(x=>x/total);
+      const scored=lensData.map(l=>({name:l.name,score:l.score.reduce((sum,v,i)=>sum + v*w[i],0)}))
+        .sort((p,q)=>q.score-p.score).slice(0,3);
+      let out='あなたにマッチするレンズは・・・\n';
+      scored.forEach((l,i)=>{ out+=`\n${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`; });
+      resultsEl.textContent=out;
+    }
+
+    // 決定ボタンクリック
+    confirmBtn.addEventListener('click', diagnose);
+
+    // 初期設定
     slider.noUiSlider.set([25,50,75]);
   </script>
 </body>
