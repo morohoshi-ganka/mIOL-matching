@@ -28,7 +28,7 @@
     .pct-label{font-size:1em;color:#000}
 
     /* button */
-    #confirm-btn{display:block;margin:220px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s}
+    #confirm-btn{display:block;margin:260px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s}
     #confirm-btn:hover{background:#1565c0}
 
     /* results */
@@ -67,34 +67,21 @@
     const btn=document.getElementById('confirm-btn');
     const names=["鮮明さ","運転","パソコン","読書"];
 
-    /* スライダー初期化 */
     noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
 
-    /* 名前ラベルは一度だけ固定で描画 */
-    (function initNameLabels(){
-      const init=[25,50,75];
-      const seg=[init[0],init[1]-init[0],init[2]-init[1],100-init[2]];
-      let acc=0;
-      seg.forEach((pct,i)=>{
-        const center=acc+pct/2;
-        const span=document.createElement('span');
-        span.className='segment-label name-label';
-        span.style.left=center+'%';
-        span.style.top=(slider.getBoundingClientRect().height/2+6)+'px';
-        span.textContent=names[i];
-        labelsEl.appendChild(span);
-        acc+=pct;
-      });
-    })();
-
-    /* %ラベル更新 */
-    function updatePctLabels(vals){
-      document.querySelectorAll('.pct-label').forEach(el=>el.remove());
+    function renderAllLabels(vals){
+      labelsEl.innerHTML='';
       const [a,b,c]=vals.map(Number);
       const seg=[a,b-a,c-b,100-c];
       let acc=0;
       seg.forEach((pct,i)=>{
         const center=acc+pct/2;
+        const name=document.createElement('span');
+        name.className='segment-label name-label';
+        name.style.left=center+'%';
+        name.style.top=(slider.getBoundingClientRect().height/2+6)+'px';
+        name.textContent=names[i];
+        labelsEl.appendChild(name);
         const lbl=document.createElement('span');
         lbl.className='segment-label pct-label';
         lbl.style.left=center+'%';
@@ -105,21 +92,17 @@
       });
     }
 
-    slider.noUiSlider.on('update',vals=>{
-      updatePctLabels(vals);
+    slider.noUiSlider.on('update',v=>{
+      renderAllLabels(v);
       slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
     });
 
-    /* 診断ロジック */
     function diagnose(){
       resultsEl.innerHTML='';
-      const [a,b,c]=slider.noUiSlider.get().map(Number);
-      if(!(a<=b&&b<=c))return;
-      const seg=[a,b-a,c-b,100-c];
-      const weights=seg.map(v=>v/100);
-      const ranked=lensData.map(l=>({name:l.name,total:l.score.reduce((sum,v,i)=>sum+v*weights[i],0)}))
-                          .sort((p,q)=>q.total-p.total)
-                          .slice(0,3);
+      const [contrast,drive,comp,read]=(()=>{const [a,b,c]=slider.noUiSlider.get().map(Number);return[a,b-a,c-b,100-c]})();
+      const weights=[contrast,drive,comp,read].map(v=>v/100);
+      const ranked=lensData.map(l=>({name:l.name,total:l.score.reduce((s,v,i)=>s+v*weights[i],0)}))
+        .sort((p,q)=>q.total-p.total).slice(0,3);
       ranked.forEach((l,i)=>{
         setTimeout(()=>{
           const row=document.createElement('div');
@@ -132,8 +115,7 @@
     }
 
     btn.addEventListener('click',diagnose);
-    /* 初期%ラベル */
-    updatePctLabels([25,50,75]);
+    renderAllLabels([25,50,75]);
   </script>
 </body>
 </html>
