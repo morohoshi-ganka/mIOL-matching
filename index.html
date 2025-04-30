@@ -70,6 +70,7 @@
     .result-item.rank-1 {
       font-size: 1.5em;
       font-weight: 800;
+      text-align: center;
     }
   </style>
 </head>
@@ -103,7 +104,14 @@
     const btn = document.getElementById('confirm-btn');
     const names = ["鮮明さ","運転","パソコン","読書"];
 
-    noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
+    noUiSlider.create(slider,{
+      start:[25,50,75],
+      connect:[true,true,true,true],
+      range:{min:0,max:100},
+      step:1,
+      behaviour:'drag',
+      tooltips:[true,true,true]
+    });
 
     function renderLabels(vals){
       labelsEl.innerHTML='';
@@ -168,7 +176,7 @@
         ranked.splice(3,0,lc);
       }
       ranked=ranked.slice(0,9);
-      const paddingLeft = '3.4em';
+      const paddingLeft = '6.4em';
       ranked.forEach((l,i)=>{
         setTimeout(()=>{
           const row=document.createElement('div');
@@ -185,7 +193,7 @@
       });
     }
 
-    btn.addEventListener('click',diagnose);
+    btn.addEventListener('click', diagnose);
     renderLabels([25,50,75]);
   </script>
 
