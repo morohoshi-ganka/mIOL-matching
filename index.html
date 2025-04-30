@@ -6,32 +6,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css" rel="stylesheet" />
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;max-width:600px;margin:auto}
-    h1{text-align:center;margin-bottom:0.3em}
-    p{text-align:center;color:#555;font-size:0.95em}
-    #multi-slider.noUi-target{height:28px;margin:50px 0;background:#ddd;border-radius:22px;box-shadow:inset 0 4px 9px rgba(0,0,0,.28),inset 0 -3px 4px rgba(0,0,0,.12)}
-    .noUi-handle{height:36px;width:36px;border-radius:50%;top:-6px;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 4px 7px rgba(0,0,0,.48);transition:transform .1s}
-    .noUi-handle:hover{transform:scale(1.12)}
-    .noUi-tooltip{display:none!important}
-    .noUi-connect{background:transparent}
-    #multi-slider .noUi-connect:nth-child(1){background:#4caf50}
-    #multi-slider .noUi-connect:nth-child(2){background:#2196f3}
-    #multi-slider .noUi-connect:nth-child(3){background:#ffc107}
-    #multi-slider .noUi-connect:nth-child(4){background:#e91e63}
-    #labels{position:relative;height:0}
-    .segment-label{position:absolute;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 1px rgba(255,255,255,.9)}
-    .name-label{font-size:1.4em;color:#000;font-weight:700}
-    .pct-label{font-size:1em;color:#000}
-    #confirm-btn{margin:200px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s;display:block}
-    #confirm-btn:hover{background:#1565c0}
-    #results{margin-top:60px;font-size:1.08em;text-align:left;}
-    .result-item{margin:18px 0;opacity:0;transition:opacity .5s}
-    .result-item.rank-1{text-align:center;font-size:1.5em;font-weight:800}
+    body {font-family: Arial, Helvetica, sans-serif; background: #f5f5f5; padding: 20px; max-width: 600px; margin: auto;}
+    h1 {text-align: center; margin-bottom: 0.3em;}
+    p {text-align: center; color: #555; font-size: 0.95em;}
+    #multi-slider.noUi-target {
+      height: 28px;
+      margin: 50px 0;
+      background: #ddd;
+      border-radius: 22px;
+      box-shadow: inset 0 4px 9px rgba(0,0,0,.28), inset 0 -3px 4px rgba(0,0,0,.12);
+    }
+    .noUi-handle {
+      height: 36px;
+      width: 36px;
+      border-radius: 50%;
+      top: -6px;
+      background: #fff;
+      border: 2px solid rgba(0,0,0,.35);
+      box-shadow: 0 4px 7px rgba(0,0,0,.48);
+      transition: transform .1s;
+    }
+    .noUi-handle:hover {transform: scale(1.12);}
+    .noUi-tooltip {display: none !important;}
+    .noUi-connect {background: transparent;}
+    #multi-slider .noUi-connect:nth-child(1) {background: #4caf50;}
+    #multi-slider .noUi-connect:nth-child(2) {background: #2196f3;}
+    #multi-slider .noUi-connect:nth-child(3) {background: #ffc107;}
+    #multi-slider .noUi-connect:nth-child(4) {background: #e91e63;}
+    #labels {position: relative; height: 0;}
+    .segment-label {
+      position: absolute;
+      pointer-events: none;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      text-shadow: 0 1px 1px rgba(255,255,255,.9);
+    }
+    .name-label {font-size: 1.4em; color: #000; font-weight: 700;}
+    .pct-label {font-size: 1em; color: #000;}
+    #confirm-btn {
+      margin: 200px auto 0;
+      padding: 14px 34px;
+      font-size: 1.15em;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 3px 5px rgba(0,0,0,.35);
+      transition: background .2s;
+      display: block;
+    }
+    #confirm-btn:hover {background: #1565c0;}
+    #results {
+      margin-top: 60px;
+      font-size: 1.08em;
+      text-align: left;
+    }
+    .result-item {
+      margin: 18px 0;
+      opacity: 0;
+      transition: opacity .5s;
+    }
+    .result-item.rank-1 {
+      font-size: 1.5em;
+      font-weight: 800;
+    }
   </style>
 </head>
 <body>
-  <h1>👁 多焦点レンズマッチング <span style='font-size:0.5em;'>beta1.0</span></h1>
-  <p>３本のハンドルで <strong>鮮明さ ➜ 運転 ➜ パソコン ➜ 読書</strong> のバランスを決め<br>下の <strong>決定</strong> ボタンを押してください。</p>
+  <h1>👁 多焦点レンズマッチング <span style="font-size: 0.5em;">beta1.0</span></h1>
+  <p>３本のハンドルで <strong>鮮明さ ・ 運転 ・ パソコン ・ 読書</strong> のバランスを決め<br>下の <strong>決定</strong> ボタンを押してください。</p>
 
   <div id="multi-slider"></div>
   <div id="labels"></div>
@@ -40,7 +84,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-    const lensData=[
+    const lensData = [
       {name:"Gemetric", score:[22.73,16.21,22.11,21.76]},
       {name:"PanOptix", score:[22.22,17.00,25.00,21.26]},
       {name:"AcrivaTrinova Pro", score:[23.48,15.00,22.50,24.00]},
@@ -53,11 +97,11 @@
       {name:"FineVision HP", score:[21.72,13.00,22.37,25.00]}
     ];
 
-    const slider=document.getElementById('multi-slider');
-    const labelsEl=document.getElementById('labels');
-    const resultsEl=document.getElementById('results');
-    const btn=document.getElementById('confirm-btn');
-    const names=["鮮明さ","運転","パソコン","読書"];
+    const slider = document.getElementById('multi-slider');
+    const labelsEl = document.getElementById('labels');
+    const resultsEl = document.getElementById('results');
+    const btn = document.getElementById('confirm-btn');
+    const names = ["鮮明さ","運転","パソコン","読書"];
 
     noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
 
@@ -99,7 +143,9 @@
       return null;
     }
 
-    function calcScore(l,w){return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;}
+    function calcScore(l,w){
+      return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;
+    }
 
     function diagnose(){
       resultsEl.innerHTML='';
@@ -117,14 +163,22 @@
         });
       }
       const lcIdx=ranked.findIndex(r=>r.name==='Lentis Comfort');
-      if(lcIdx>-1 && lcIdx<3){const [lc]=ranked.splice(lcIdx,1);ranked.splice(3,0,lc);}
+      if(lcIdx>-1 && lcIdx<3){
+        const [lc]=ranked.splice(lcIdx,1);
+        ranked.splice(3,0,lc);
+      }
       ranked=ranked.slice(0,9);
+      const paddingLeft = '3.4em';
       ranked.forEach((l,i)=>{
         setTimeout(()=>{
           const row=document.createElement('div');
           row.className='result-item rank-'+(i+1);
           row.style.opacity='1';
-          row.style.textAlign = i === 0 ? 'center' : 'left';
+          if(i === 0){
+            row.style.textAlign = 'center';
+          } else {
+            row.style.paddingLeft = paddingLeft;
+          }
           row.textContent=`${i+1}位: ${l.name} (総合 ${l.total.toFixed(1)})`;
           resultsEl.appendChild(row);
         },i*600);
@@ -134,6 +188,7 @@
     btn.addEventListener('click',diagnose);
     renderLabels([25,50,75]);
   </script>
+
   <div style="margin-top:60px; font-size:0.85em; color:#555; line-height:1.6;">
     <div style="text-align:left">
       <p style="margin:0">※「鮮明さ」は瞳孔径3mmの光学ロスを参考にしています。</p>
