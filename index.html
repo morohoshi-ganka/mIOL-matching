@@ -5,175 +5,123 @@
   <title>多焦点レンズ診断</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- noUiSlider のスタイル -->
+  <!-- noUiSlider CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css" rel="stylesheet" />
 
   <style>
-    body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; background:#f5f5f5; }
-    h1 { text-align:center; margin-bottom:0.2em; }
-    p { text-align:center; color:#555; }
+    body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;max-width:600px;margin:auto}
+    h1{text-align:center;margin-bottom:0.3em}
+    p{text-align:center;color:#555;font-size:0.95em}
 
-    /* スライダー帯の立体感 */
-    #multi-slider.noUi-target {
-      background: #ddd;
-      box-shadow:
-        inset 0 4px 8px rgba(0,0,0,0.2),
-        inset 0 -2px 4px rgba(0,0,0,0.1);
-      border-radius: 20px;
-      height: 24px;
-      margin: 40px 0;
-    }
-    /* ハンドルの立体感 */
-    .noUi-handle {
-      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-      border-radius: 50%;
-      height: 32px;
-      width: 32px;
-      top: -4px;
-      background: #fff;
-      border: 2px solid rgba(0,0,0,0.3);
-      transition: transform 0.1s;
-    }
-    .noUi-handle:hover { transform: scale(1.1); }
+    /* slider */
+    #multi-slider.noUi-target{height:26px;margin:50px 0;background:#ddd;border-radius:20px;box-shadow:inset 0 4px 8px rgba(0,0,0,.25),inset 0 -2px 4px rgba(0,0,0,.1)}
+    .noUi-handle{height:34px;width:34px;border-radius:50%;top:-5px;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 4px 6px rgba(0,0,0,.45);transition:transform .1s}
+    .noUi-handle:hover{transform:scale(1.12)}
+    .noUi-tooltip{display:none!important}
+    .noUi-connect{background:transparent}
+    #multi-slider .noUi-connect:nth-child(1){background:#4caf50}
+    #multi-slider .noUi-connect:nth-child(2){background:#2196f3}
+    #multi-slider .noUi-connect:nth-child(3){background:#ffc107}
+    #multi-slider .noUi-connect:nth-child(4){background:#e91e63}
 
-    /* ツールチップ非表示 */
-    .noUi-tooltip { display: none !important; }
+    /* labels */
+    #labels{position:relative;height:0}
+    .segment-label{position:absolute;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 1px rgba(255,255,255,.9)}
+    .name-label{font-size:1.3em;color:#000;font-weight:600}
+    .pct-label{font-size:1em;color:#000}
 
-    /* 各セグメントの色 */
-    .noUi-connect { background: transparent; }
-    #multi-slider .noUi-connect:nth-child(1) { background: #4CAF50; }
-    #multi-slider .noUi-connect:nth-child(2) { background: #2196F3; }
-    #multi-slider .noUi-connect:nth-child(3) { background: #FFC107; }
-    #multi-slider .noUi-connect:nth-child(4) { background: #E91E63; }
+    /* button */
+    #confirm-btn{display:block;margin:180px auto 0;padding:12px 28px;font-size:1.1em;background:#1976d2;color:#fff;border:none;border-radius:8px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:background .2s}
+    #confirm-btn:hover{background:#1565c0}
 
-    /* ラベル表示用 */
-    #labels { position: relative; height: 0; }
-    .segment-label { position: absolute; pointer-events: none; white-space: nowrap; transform: translate(-50%, -50%); text-shadow: 0 1px 1px rgba(255,255,255,0.8); }
-    .name-label { color: black; font-size: 1.2em; }
-    .pct-label  { color: black; font-size: 1em; }
-
-    /* 決定ボタン */
-    #confirm-btn {
-      display: block;
-      margin: 140px auto 0; /* ボタンを下に移動 */
-      padding: 12px 24px;
-      font-size: 1.1em;
-      background: #1976D2;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      transition: background 0.2s;
-    }
-    #confirm-btn:hover { background: #1565C0; }
-
-    /* 結果表示 */
-    #results { margin-top: 40px; font-size: 1.05em; }
-    .result-item { margin: 12px 0; opacity: 0; transition: opacity 0.5s; }
-    .result-item:first-child { font-size: 1.3em; font-weight: bold; }
+    /* results */
+    #results{margin-top:50px;font-size:1.05em}
+    .result-item{margin:14px 0;opacity:0;transition:opacity .5s}
+    .result-item.rank-1{font-size:1.4em;font-weight:700}
   </style>
 </head>
 <body>
   <h1>👁 多焦点レンズ診断</h1>
-  <p>３本のハンドルをドラッグして「鮮明さ⇔運転⇔パソコン⇔読書」のバランスを調整し、<br>「決定」ボタンを押してください。</p>
+  <p>３本のハンドルで「鮮明さ ➜ 運転 ➜ パソコン ➜ 読書」のバランスを決め、<br>下の <strong>決定</strong> ボタンを押してください。</p>
 
-  <!-- スライダー本体 -->
   <div id="multi-slider"></div>
-  <!-- セグメント名＋％ラベル配置領域 -->
   <div id="labels"></div>
-  <!-- 決定ボタン -->
   <button id="confirm-btn">決定</button>
-  <!-- 診断結果 -->
   <div id="results"></div>
 
-  <!-- noUiSlider のスクリプト -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-    const lensData = [
-      {name:"FineVision HP", score:[25.00,12.99,16.49,21.72]},
-      {name:"PanOptix",     score:[21.26,17.01,19.23,22.22]},
-      {name:"Vivity",       score:[15.63,22.22,21.98,24.75]},
-      {name:"Monofocal",    score:[ 5.26,25.00,13.73,25.00]}
+    /* 正規化スコア: [contrast, driving, computer, reading] 順 */
+    const lensData=[
+      {name:"FineVision HP",score:[21.72,12.99,16.49,25.00]},
+      {name:"PanOptix",    score:[22.22,17.01,19.23,21.26]},
+      {name:"Vivity",      score:[24.75,22.22,21.98,15.63]},
+      {name:"Monofocal",   score:[25.00,25.00,13.73, 5.26]}
     ];
 
-    const slider = document.getElementById('multi-slider');
-    const labelsEl = document.getElementById('labels');
-    const resultsEl = document.getElementById('results');
-    const confirmBtn = document.getElementById('confirm-btn');
-    const names = ['鮮明さ','運転','パソコン','読書'];
+    const names=["鮮明さ","運転","パソコン","読書"];
+    const slider=document.getElementById("multi-slider");
+    const labelsEl=document.getElementById("labels");
+    const resultsEl=document.getElementById("results");
+    const btn=document.getElementById("confirm-btn");
 
-    noUiSlider.create(slider, {
-      start: [25, 50, 75],
-      connect: [true, true, true, true],
-      range: { min: 0, max: 100 },
-      step: 1,
-      behaviour: 'drag',
-      tooltips: [true, true, true]
-    });
+    noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:"drag",tooltips:[true,true,true]});
 
-    /* 初期ラベル */
-    (function() {
-      const [a,b,c] = [25,50,75];
-      const seg=[a, b-a, c-b, 100-c]; let acc=0;
-      seg.forEach((pct,i)=>{
-        const x=acc + pct/2;
-        const span=document.createElement('span');
-        span.className='segment-label name-label';
-        span.style.left=x+'%';
-        span.style.top=(slider.getBoundingClientRect().height/2 + 10)+'px';
-        span.textContent=names[i];
-        labelsEl.appendChild(span);
-        acc+=pct;
-      });
-    })();
-
-    /* 更新ラベル */
-    slider.noUiSlider.on('update', (values) => {
-      const [a,b,c] = values.map(v=>+v);
-      const seg=[a, b-a, c-b, 100-c];
-      document.querySelectorAll('.pct-label').forEach(el=>el.remove());
+    /* ラベル更新 */
+    function renderLabels(vals){
+      labelsEl.innerHTML="";
+      const [a,b,c]=vals.map(Number);
+      const seg=[a,b-a,c-b,100-c];
       let acc=0;
       seg.forEach((pct,i)=>{
-        const x=acc + pct/2;
-        const span=document.createElement('span');
-        span.className='segment-label pct-label';
-        span.style.left=x+'%';
-        span.style.top=(slider.getBoundingClientRect().height/2 + 30)+'px';
-        span.textContent=pct.toFixed(1)+'%';
-        labelsEl.appendChild(span);
+        const center=acc+pct/2;
+        // 名称
+        const nameSpan=document.createElement("span");
+        nameSpan.className="segment-label name-label";
+        nameSpan.style.left=center+"%";
+        nameSpan.style.top=(slider.getBoundingClientRect().height/2+6)+"px";
+        nameSpan.textContent=names[i];
+        labelsEl.appendChild(nameSpan);
+        // ％
+        const pctSpan=document.createElement("span");
+        pctSpan.className="segment-label pct-label";
+        pctSpan.style.left=center+"%";
+        pctSpan.style.top=(slider.getBoundingClientRect().height/2+30)+"px";
+        pctSpan.textContent=pct.toFixed(1)+"%";
+        labelsEl.appendChild(pctSpan);
         acc+=pct;
-      });
-      slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
-    });
-
-    /* 診断ロジック */
-    function diagnose() {
-      resultsEl.innerHTML = '';
-      const [a,b,c] = slider.noUiSlider.get().map(v=>+v);
-      if(!(a<=b && b<=c)) return;
-      const raw=[a, b-a, c-b, 100-c];
-      const total=raw.reduce((s,x)=>s+x,0);
-      const w=raw.map(x=>x/total);
-      const scored=lensData.map(l=>({name:l.name,score:l.score.reduce((sum,v,i)=>sum + v*w[i],0)}))
-        .sort((p,q)=>q.score-p.score).slice(0,3);
-
-      scored.forEach((l,i)=>{
-        setTimeout(()=>{
-          const div=document.createElement('div');
-          div.className='result-item';
-          div.textContent=`${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`;
-          if(i===0) div.style.fontSize='1.4em';
-          div.style.opacity='1';
-          resultsEl.appendChild(div);
-        }, i*500);
       });
     }
 
-    /* 決定ボタンクリック */
-    confirmBtn.addEventListener('click', diagnose);
+    slider.noUiSlider.on("update",vals=>{
+      renderLabels(vals);
+      slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
+    });
 
-    slider.noUiSlider.set([25,50,75]);
+    /* 診断 */
+    function diagnose(){
+      resultsEl.innerHTML="";
+      const [a,b,c]=slider.noUiSlider.get().map(Number);
+      if(!(a<=b&&b<=c))return;
+      const weights=[a,b-a,c-b,100-c].map(v=>v/100);
+      const ranked=lensData.map(l=>{
+        const score=l.score.reduce((sum,v,i)=>sum+v*weights[i],0);
+        return {...l,total:score};
+      }).sort((p,q)=>q.total-p.total).slice(0,3);
+
+      ranked.forEach((l,i)=>{
+        setTimeout(()=>{
+          const div=document.createElement("div");
+          div.className="result-item rank-"+(i+1);
+          div.style.opacity="1";
+          div.textContent=`${i+1}位: ${l.name} (スコア:${l.total.toFixed(2)})`;
+          resultsEl.appendChild(div);
+        },i*600);
+      });
+    }
+
+    btn.addEventListener("click",diagnose);
+    renderLabels([25,50,75]);
   </script>
 </body>
 </html>
