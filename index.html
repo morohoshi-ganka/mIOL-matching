@@ -2,14 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>多焦点レンズ診断</title>
+  <title>多焦点レンズマッチング</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css" rel="stylesheet" />
   <style>
     body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;max-width:600px;margin:auto}
     h1{text-align:center;margin-bottom:0.3em}
     p{text-align:center;color:#555;font-size:0.95em}
-    /* slider core */
     #multi-slider.noUi-target{height:28px;margin:50px 0;background:#ddd;border-radius:22px;box-shadow:inset 0 4px 9px rgba(0,0,0,.28),inset 0 -3px 4px rgba(0,0,0,.12)}
     .noUi-handle{height:36px;width:36px;border-radius:50%;top:-6px;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 4px 7px rgba(0,0,0,.48);transition:transform .1s}
     .noUi-handle:hover{transform:scale(1.12)}
@@ -19,22 +18,19 @@
     #multi-slider .noUi-connect:nth-child(2){background:#2196f3}
     #multi-slider .noUi-connect:nth-child(3){background:#ffc107}
     #multi-slider .noUi-connect:nth-child(4){background:#e91e63}
-    /* labels */
     #labels{position:relative;height:0}
     .segment-label{position:absolute;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 1px rgba(255,255,255,.9)}
     .name-label{font-size:1.4em;color:#000;font-weight:700}
     .pct-label{font-size:1em;color:#000}
-    /* button */
     #confirm-btn{display:block;margin:260px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s}
     #confirm-btn:hover{background:#1565c0}
-    /* results */
     #results{margin-top:60px;font-size:1.08em}
     .result-item{margin:18px 0;opacity:0;transition:opacity .5s}
     .result-item.rank-1{font-size:1.5em;font-weight:800}
   </style>
 </head>
 <body>
-  <h1>👁 多焦点レンズ診断</h1>
+  <h1>👁 多焦点レンズマッチング</h1>
   <p>３本のハンドルで <strong>鮮明さ ➜ 運転 ➜ パソコン ➜ 読書</strong> のバランスを決め<br>下の <strong>決定</strong> ボタンを押してください。</p>
 
   <div id="multi-slider"></div>
@@ -66,7 +62,6 @@
 
     noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
 
-    /* ラベル */
     function renderLabels(vals){
       labelsEl.innerHTML='';
       const [a,b,c]=vals.map(Number);
@@ -74,18 +69,18 @@
       let acc=0;
       seg.forEach((pct,i)=>{
         const center=acc+pct/2;
-        const name=document.createElement('span');
-        name.className='segment-label name-label';
-        name.style.left=center+'%';
-        name.style.top=(slider.getBoundingClientRect().height/2+6)+'px';
-        name.textContent=names[i];
-        labelsEl.appendChild(name);
-        const lbl=document.createElement('span');
-        lbl.className='segment-label pct-label';
-        lbl.style.left=center+'%';
-        lbl.style.top=(slider.getBoundingClientRect().height/2+32)+'px';
-        lbl.textContent=pct.toFixed(1)+'%';
-        labelsEl.appendChild(lbl);
+        const n=document.createElement('span');
+        n.className='segment-label name-label';
+        n.style.left=center+'%';
+        n.style.top=(slider.getBoundingClientRect().height/2+6)+'px';
+        n.textContent=names[i];
+        labelsEl.appendChild(n);
+        const p=document.createElement('span');
+        p.className='segment-label pct-label';
+        p.style.left=center+'%';
+        p.style.top=(slider.getBoundingClientRect().height/2+32)+'px';
+        p.textContent=pct.toFixed(1)+'%';
+        labelsEl.appendChild(p);
         acc+=pct;
       });
     }
@@ -95,53 +90,43 @@
       slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
     });
 
-    /* カスタム順位ロジック */
-    function customFirst(weights){
-      const [wC,wD,wPC,wR]=weights;
-      const sumFar=wC+wD;
-      const sumNear=wPC+wR;
-      // R1: 鮮明さ+運転 ≥ 75% → Monofocal
-      if(sumFar>=0.75) return 'Monofocal';
-      // R2: 読書>パソコン & 近用>遠用 → FineVision HP
-      if(wR>wPC && sumNear>sumFar) return 'FineVision HP';
-      // R3: ほぼ 25% バランス → PanOptix
-      const balanced=weights.every(w=>Math.abs(w-0.25)<=0.02);
-      if(balanced) return 'PanOptix';
+    function customFirst(w){
+      const [c,d,pc,r]=w; const far=c+d,near=pc+r;
+      if(far>=0.75) return 'Monofocal';
+      if(r>pc && near>far) return 'FineVision HP';
+      if(w.every(v=>Math.abs(v-0.25)<=0.02)) return 'PanOptix';
       return null;
     }
+
+    function calcScore(l,w){return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;}
 
     function diagnose(){
       resultsEl.innerHTML='';
       const [a,b,c]=slider.noUiSlider.get().map(Number);
       if(!(a<=b&&b<=c))return;
       const seg=[a,b-a,c-b,100-c];
-      const weights=seg.map(v=>v/100);
+      const w=seg.map(v=>v/100);
 
-      /* 先頭固定レンズ判定 */
-      const first=customFirst(weights);
-      let ranked;
-      const calcScore = l => {
-        const raw = l.score.reduce((s,v,i)=>s+v*weights[i],0); // 0‒25
-        return raw * 4; // 100 点満点にスケール
-      };
-
+      const first=customFirst(w);
+      let ranked=lensData.map(l=>({name:l.name,total:calcScore(l,w)}));
+      ranked.sort((a,b)=>b.total-a.total);
       if(first){
-        const firstObj=lensData.find(l=>l.name===first);
-        const others=lensData.filter(l=>l.name!==first);
-        const rest=others.map(l=>({name:l.name,total:calcScore(l)})).sort((a,b)=>b.total-a.total);
-        ranked=[{name:first,total:calcScore(firstObj)},...rest].slice(0,9);
-      }else{
-        ranked=lensData.map(l=>({name:l.name,total:calcScore(l)})).sort((a,b)=>b.total-a.total).slice(0,9);
+        const idx=ranked.findIndex(r=>r.name===first);
+        if(idx>-1){const [obj]=ranked.splice(idx,1);ranked.unshift(obj);} else {ranked.unshift({name:first,total:calcScore(lensData.find(l=>l.name===first),w)});}
       }
+      /* Lentis Comfort が TOP3 に入ったら 4 位へ */
+      const lcIdx=ranked.findIndex(r=>r.name==='Lentis Comfort');
+      if(lcIdx>-1 && lcIdx<3){const [lc]=ranked.splice(lcIdx,1);ranked.splice(3,0,lc);}      
+      ranked=ranked.slice(0,9);
 
       ranked.forEach((l,i)=>{
         setTimeout(()=>{
           const row=document.createElement('div');
           row.className='result-item rank-'+(i+1);
           row.style.opacity='1';
-          row.textContent=`${i+1}位: ${l.name} (総合 ${l.total.toFixed(2)})`;
+          row.textContent=`${i+1}位: ${l.name} (総合 ${l.total.toFixed(1)})`;
           resultsEl.appendChild(row);
-        },i*700);
+        },i*600);
       });
     }
 
