@@ -46,8 +46,8 @@
       {name:"PanOptix",           score:[22.22,17.00,25.00,21.26]},
       {name:"AcrivaTrinova Pro",  score:[23.48,15.00,22.50,24.00]},
       {name:"Odyssey",            score:[24.00,19.50,21.05,20.00]},
-      {name:"Vivity",             score:[23.00,18.00,21.98,15.63]},
-      {name:"PureSee",            score:[24.75,23.00,19.21,15.53]},
+      {name:"Vivity",             score:[24.80,18.00,21.98,15.63]},
+      {name:"PureSee",            score:[24.20,23.00,19.21,15.53]},
       {name:"Symfony",            score:[23.23,10.00,19.74,15.26]},
       {name:"Lentis Comfort",     score:[23.99,19.00,13.16,10.00]},
       {name:"Monofocal",          score:[25.00,25.00,7.89, 5.26]},
@@ -113,14 +113,23 @@
       const seg=[a,b-a,c-b,100-c];
       const w=seg.map(v=>v/100);
 
-      const first=customFirst(w);
+      /* 全レンズにスコアを付与 */
       let ranked=lensData.map(l=>({name:l.name,total:calcScore(l,w)}));
       ranked.sort((a,b)=>b.total-a.total);
-      if(first){
-        const idx=ranked.findIndex(r=>r.name===first);
-        if(idx>-1){const [obj]=ranked.splice(idx,1);ranked.unshift(obj);} else {ranked.unshift({name:first,total:calcScore(lensData.find(l=>l.name===first),w)});}
+
+      /* 事前固定順位 */
+      const fixed=customFirst(w); // null or array
+      if(fixed){
+        // remove fixed names from ranked
+        ranked=ranked.filter(r=>!fixed.includes(r.name));
+        // prepend fixed in指定順
+        fixed.reverse().forEach(n=>{
+          const obj={name:n,total:calcScore(lensData.find(l=>l.name===n),w)};
+          ranked.unshift(obj);
+        });
       }
-      /* Lentis Comfort が TOP3 に入ったら 4 位へ */
+
+      /* Lentis Comfort を 4 位以下に */
       const lcIdx=ranked.findIndex(r=>r.name==='Lentis Comfort');
       if(lcIdx>-1 && lcIdx<3){const [lc]=ranked.splice(lcIdx,1);ranked.splice(3,0,lc);}      
       ranked=ranked.slice(0,9);
