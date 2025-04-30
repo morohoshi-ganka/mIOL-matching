@@ -22,15 +22,15 @@
     .segment-label{position:absolute;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 1px rgba(255,255,255,.9)}
     .name-label{font-size:1.4em;color:#000;font-weight:700}
     .pct-label{font-size:1em;color:#000}
-    #confirm-btn{margin:160px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s}
+    #confirm-btn{margin:100px auto 0;display:block;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s}
     #confirm-btn:hover{background:#1565c0}
-    #results{margin-top:60px;font-size:1.08em}
+    #results{text-align:center;margin-top:60px;font-size:1.08em}
     .result-item{margin:18px 0;opacity:0;transition:opacity .5s}
     .result-item.rank-1{font-size:1.5em;font-weight:800}
   </style>
 </head>
 <body>
-  <h1>👁 多焦点レンズマッチング <span style="font-size:0.5em;">beta1.0</span></h1>
+  <h1>👁 多焦点レンズマッチング <span style='font-size:0.5em;'>beta1.0</span></h1>
   <p>３本のハンドルで <strong>鮮明さ ・ 運転 ・ パソコン ・ 読書</strong> のバランスを決め<br>下の <strong>決定</strong> ボタンを押してください。</p>
 
   <div id="multi-slider"></div>
@@ -40,7 +40,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-    const lensData = [
+    const lensData=[
       {name:"Gemetric",           score:[22.73,16.21,22.11,21.76]},
       {name:"PanOptix",           score:[22.22,17.00,25.00,21.26]},
       {name:"AcrivaTrinova Pro",  score:[23.48,15.00,22.50,24.00]},
@@ -138,12 +138,12 @@
     renderLabels([25,50,75]);
   </script>
 
-  <div style="margin-top:60px; font-size:0.85em; color:#555; line-height:1.6;">
+  <div style="margin-top:60px; font-size:0.85em; color:#555; line-height:1.6; text-align:left;">
     <p style="margin:0">※「鮮明さ」は瞳孔径3mmの光学ロスを参考にしています。</p>
     <p style="margin:0">※「運転」は遠方への光エネルギー配分と、異常光視症の少なさを反映しています。</p>
     <p style="margin:0">※「パソコン」は焦点が60cmにどれだけ近いかを参考にしています。</p>
     <p style="margin:0">※「鮮明さ」は瞳孔径3mmの光学ロスを参考にしています。</p>
-    <p style="margin-top:1em; text-align:center;">Copyright 2025 Morohoshi Eye Clinic. All rights reserved.</p>
+    <p style="margin-top:1em;">Copyright 2025 Morohoshi Eye Clinic. All rights reserved.</p>
   </div>
 </body>
 </html>
