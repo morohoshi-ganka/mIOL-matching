@@ -6,10 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- noUiSlider のスタイル -->
-  <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css"
-    rel="stylesheet"
-  />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css" rel="stylesheet" />
 
   <style>
     body { font-family: Arial, sans-serif; padding:20px; max-width:600px; margin:auto; background:#f5f5f5; }
@@ -42,7 +39,7 @@
     /* ツールチップ非表示 */
     .noUi-tooltip { display: none !important; }
 
-    /* 各セグメントを個別色で塗る */
+    /* 各セグメントの色 */
     .noUi-connect { background: transparent; }
     #multi-slider .noUi-connect:nth-child(1) { background: #4CAF50; }
     #multi-slider .noUi-connect:nth-child(2) { background: #2196F3; }
@@ -51,22 +48,16 @@
 
     /* ラベル表示用 */
     #labels { position: relative; height: 0; }
-    .segment-label {
-      position: absolute;
-      pointer-events: none;
-      white-space: nowrap;
-      transform: translate(-50%, -50%);
-      text-shadow: 0 1px 1px rgba(255,255,255,0.8);
-    }
-    .name-label { color: black; font-size: 1.1em; }
-    .pct-label { color: black; font-size: 0.9em; }
+    .segment-label { position: absolute; pointer-events: none; white-space: nowrap; transform: translate(-50%, -50%); text-shadow: 0 1px 1px rgba(255,255,255,0.8); }
+    .name-label { color: black; font-size: 1.2em; }
+    .pct-label  { color: black; font-size: 1em; }
 
     /* 決定ボタン */
     #confirm-btn {
       display: block;
-      margin: 60px auto 0;
-      padding: 10px 20px;
-      font-size: 1em;
+      margin: 140px auto 0; /* ボタンを下に移動 */
+      padding: 12px 24px;
+      font-size: 1.1em;
       background: #1976D2;
       color: white;
       border: none;
@@ -78,12 +69,9 @@
     #confirm-btn:hover { background: #1565C0; }
 
     /* 結果表示 */
-    #results {
-      margin-top: 30px;
-      font-size: 1em;
-    }
-    .result-item { margin: 10px 0; }
-    .result-item:first-child { font-size: 1.2em; font-weight: bold; }
+    #results { margin-top: 40px; font-size: 1.05em; }
+    .result-item { margin: 12px 0; opacity: 0; transition: opacity 0.5s; }
+    .result-item:first-child { font-size: 1.3em; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -102,12 +90,11 @@
   <!-- noUiSlider のスクリプト -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-    // 正規化済みスコアデータ（各項目Max25）
     const lensData = [
       {name:"FineVision HP", score:[25.00,12.99,16.49,21.72]},
       {name:"PanOptix",     score:[21.26,17.01,19.23,22.22]},
       {name:"Vivity",       score:[15.63,22.22,21.98,24.75]},
-      {name:"Monofocal",    score:[ 5.26,25.00,13.73,25.00]},
+      {name:"Monofocal",    score:[ 5.26,25.00,13.73,25.00]}
     ];
 
     const slider = document.getElementById('multi-slider');
@@ -116,7 +103,6 @@
     const confirmBtn = document.getElementById('confirm-btn');
     const names = ['鮮明さ','運転','パソコン','読書'];
 
-    // スライダー初期化
     noUiSlider.create(slider, {
       start: [25, 50, 75],
       connect: [true, true, true, true],
@@ -126,11 +112,10 @@
       tooltips: [true, true, true]
     });
 
-    // 初期ラベル（名前のみ）
+    /* 初期ラベル */
     (function() {
       const [a,b,c] = [25,50,75];
-      const seg=[a, b-a, c-b, 100-c];
-      let acc=0;
+      const seg=[a, b-a, c-b, 100-c]; let acc=0;
       seg.forEach((pct,i)=>{
         const x=acc + pct/2;
         const span=document.createElement('span');
@@ -143,11 +128,10 @@
       });
     })();
 
-    // 更新時：％ラベルと非表示ツールチップ
+    /* 更新ラベル */
     slider.noUiSlider.on('update', (values) => {
       const [a,b,c] = values.map(v=>+v);
       const seg=[a, b-a, c-b, 100-c];
-      // 古い％ラベル削除
       document.querySelectorAll('.pct-label').forEach(el=>el.remove());
       let acc=0;
       seg.forEach((pct,i)=>{
@@ -155,17 +139,17 @@
         const span=document.createElement('span');
         span.className='segment-label pct-label';
         span.style.left=x+'%';
-        span.style.top=(slider.getBoundingClientRect().height/2 + 28)+'px';
+        span.style.top=(slider.getBoundingClientRect().height/2 + 30)+'px';
         span.textContent=pct.toFixed(1)+'%';
         labelsEl.appendChild(span);
         acc+=pct;
       });
-      // ツールチップ非表示
       slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
     });
 
-    // 診断ロジック
+    /* 診断ロジック */
     function diagnose() {
+      resultsEl.innerHTML = '';
       const [a,b,c] = slider.noUiSlider.get().map(v=>+v);
       if(!(a<=b && b<=c)) return;
       const raw=[a, b-a, c-b, 100-c];
@@ -173,21 +157,22 @@
       const w=raw.map(x=>x/total);
       const scored=lensData.map(l=>({name:l.name,score:l.score.reduce((sum,v,i)=>sum + v*w[i],0)}))
         .sort((p,q)=>q.score-p.score).slice(0,3);
-      // 結果表示実装
-      resultsEl.innerHTML = '';
+
       scored.forEach((l,i)=>{
-        const div = document.createElement('div');
-        div.className = 'result-item';
-        div.textContent = `${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`;
-        resultsEl.appendChild(div);
-        if(i===0) div.style.fontSize='1.2em';
+        setTimeout(()=>{
+          const div=document.createElement('div');
+          div.className='result-item';
+          div.textContent=`${i+1}位: ${l.name}（スコア:${l.score.toFixed(2)}）`;
+          if(i===0) div.style.fontSize='1.4em';
+          div.style.opacity='1';
+          resultsEl.appendChild(div);
+        }, i*500);
       });
     }
 
-    // 決定ボタンクリック
+    /* 決定ボタンクリック */
     confirmBtn.addEventListener('click', diagnose);
 
-    // 初期設定
     slider.noUiSlider.set([25,50,75]);
   </script>
 </body>
