@@ -4,34 +4,34 @@
   <meta charset="UTF-8" />
   <title>多焦点レンズマッチング</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css" rel="stylesheet" />
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;max-width:620px;margin:auto}
-    h1{text-align:center;margin-bottom:.4em}
-    p{text-align:center;color:#555;font-size:.95em}
-    #multi-slider.noUi-target{height:28px;margin:48px 0;background:#ddd;border-radius:22px;box-shadow:inset0 4px9px rgba(0,0,0,.28),inset0 -3px4px rgba(0,0,0,.12)}
+    body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;max-width:600px;margin:auto}
+    h1{text-align:center;margin-bottom:0.3em}
+    p{text-align:center;color:#555;font-size:0.95em}
+    #multi-slider.noUi-target{height:28px;margin:50px 0;background:#ddd;border-radius:22px;box-shadow:inset 0 4px 9px rgba(0,0,0,.28),inset 0 -3px 4px rgba(0,0,0,.12)}
     .noUi-handle{height:36px;width:36px;border-radius:50%;top:-6px;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 4px 7px rgba(0,0,0,.48);transition:transform .1s}
     .noUi-handle:hover{transform:scale(1.12)}
-    .noUi-tooltip{display:none}
+    .noUi-tooltip{display:none!important}
     .noUi-connect{background:transparent}
     #multi-slider .noUi-connect:nth-child(1){background:#4caf50}
     #multi-slider .noUi-connect:nth-child(2){background:#2196f3}
     #multi-slider .noUi-connect:nth-child(3){background:#ffc107}
     #multi-slider .noUi-connect:nth-child(4){background:#e91e63}
     #labels{position:relative;height:0}
-    .segment-label{position:absolute;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px1px rgba(255,255,255,.9);pointer-events:none}
-    .name-label{font-size:1.35em;font-weight:700;color:#000}
+    .segment-label{position:absolute;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 1px rgba(255,255,255,.9)}
+    .name-label{font-size:1.4em;color:#000;font-weight:700}
     .pct-label{font-size:1em;color:#000}
-    #confirm-btn{display:block;margin:260px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px5px rgba(0,0,0,.35);transition:background .2s}
+    #confirm-btn{display:block;margin:260px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s}
     #confirm-btn:hover{background:#1565c0}
     #results{margin-top:60px;font-size:1.08em}
-    .result-item{margin:16px 0;opacity:0;transition:opacity .5s}
-    .rank-1{font-size:1.5em;font-weight:800}
+    .result-item{margin:18px 0;opacity:0;transition:opacity .5s}
+    .result-item.rank-1{font-size:1.5em;font-weight:800}
   </style>
 </head>
 <body>
   <h1>👁 多焦点レンズマッチング</h1>
-  <p>３本のハンドルで <b>鮮明さ ➜ 運転 ➜ パソコン ➜ 読書</b> の配分を決め<br>「決定」を押してください。</p>
+  <p>３本のハンドルで <strong>鮮明さ ➜ 運転 ➜ パソコン ➜ 読書</strong> のバランスを決め<br>下の <strong>決定</strong> ボタンを押してください。</p>
 
   <div id="multi-slider"></div>
   <div id="labels"></div>
@@ -40,92 +40,109 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-  /* スコア: [Contrast, Driving, Computer, Reading]  */
-  const lensData=[
-    {name:"Gemetric",           score:[22.73,16.21,22.11,21.76]},
-    {name:"PanOptix",           score:[22.22,17.00,25.00,21.26]},
-    {name:"AcrivaTrinova Pro",  score:[23.48,15.00,22.50,24.00]},
-    {name:"Odyssey",            score:[24.00,19.50,21.05,20.00]},
-    {name:"Vivity",             score:[24.80,18.00,21.98,15.63]},
-    {name:"PureSee",            score:[24.20,23.00,19.21,15.53]},
-    {name:"Symfony",            score:[23.23,10.00,19.74,15.26]},
-    {name:"Lentis Comfort",     score:[23.99,19.00,13.16,10.00]},
-    {name:"Monofocal",          score:[25.00,25.00, 7.89, 5.26]},
-    {name:"FineVision HP",      score:[21.72,13.00,22.37,25.00]}
-  ];
+    /* スコア: [Contrast, Driving, Computer, Reading] */
+    const lensData=[
+      {name:"Gemetric",           score:[22.73,16.21,22.11,21.76]},
+      {name:"PanOptix",           score:[22.22,17.00,25.00,21.26]},
+      {name:"AcrivaTrinova Pro",  score:[23.48,15.00,22.50,24.00]},
+      {name:"Odyssey",            score:[24.00,19.50,21.05,20.00]},
+      {name:"Vivity",             score:[24.80,18.00,21.98,15.63]},
+      {name:"PureSee",            score:[24.20,23.00,19.21,15.53]},
+      {name:"Symfony",            score:[23.23,10.00,19.74,15.26]},
+      {name:"Lentis Comfort",     score:[23.99,19.00,13.16,10.00]},
+      {name:"Monofocal",          score:[25.00,25.00,7.89, 5.26]},
+      {name:"FineVision HP",      score:[21.72,13.00,22.37,25.00]}
+    ];
 
-  /* slider */
-  const slider=document.getElementById('multi-slider');
-  noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
+    const slider=document.getElementById('multi-slider');
+    const labelsEl=document.getElementById('labels');
+    const resultsEl=document.getElementById('results');
+    const btn=document.getElementById('confirm-btn');
+    const names=["鮮明さ","運転","パソコン","読書"];
 
-  const names=["鮮明さ","運転","パソコン","読書"];
-  const labels=document.getElementById('labels');
-  function renderLabels(vals){
-    labels.innerHTML='';
-    const sorted=[...vals.map(Number)].sort((x,y)=>x-y);
-    const seg=[sorted[0],sorted[1]-sorted[0],sorted[2]-sorted[1],100-sorted[2]];
-    let acc=0;
-    seg.forEach((pct,i)=>{
-      const center=acc+pct/2;
-      const n=document.createElement('span');
-      n.className='segment-label name-label';
-      n.style.left=center+'%'; n.style.top='-10px'; n.textContent=names[i];
-      labels.appendChild(n);
-      const p=document.createElement('span');
-      p.className='segment-label pct-label';
-      p.style.left=center+'%'; p.style.top='18px'; p.textContent=pct.toFixed(1)+'%';
-      labels.appendChild(p); acc+=pct;
-    });
-  }
-  slider.noUiSlider.on('update',v=>{renderLabels(v); slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');});
-  renderLabels([25,50,75]);
+    noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
 
-  /* 固定順位条件 */
-  function fixedOrder(weights){
-    const [c,d,pc,r]=weights, far=c+d, near=pc+r;
-    if(far>=0.75) return ['Monofocal'];                    // 75% 以上 → Monofocal
-    if(far>=0.65) return ['Monofocal','PureSee','Vivity']; // 65% 以上 → Monofocal>PureSee>Vivity
-    if(r>pc && near>far) return ['FineVision HP'];         // 読書重視
-    if(weights.every(w=>Math.abs(w-0.25)<=0.02)) return ['PanOptix']; // バランス型
-    return null;
-  }
-
-  function calc100(l,w){
-    const raw=l.score.reduce((s,v,i)=>s+v*w[i],0);
-    return isNaN(raw)?0:raw*4;
-  }
-
-  document.getElementById('confirm-btn').onclick=function(){
-    const raw=[...slider.noUiSlider.get()].map(Number).sort((x,y)=>x-y);
-    const seg=[raw[0],raw[1]-raw[0],raw[2]-raw[1],100-raw[2]].map(v=>Math.max(0,v));
-    const w=seg.map(v=>v/100);
-    let ranked=lensData.map(l=>({name:l.name,total:calc100(l,w)}))
-                       .sort((a,b)=>b.total-a.total);
-
-    const fixed=fixedOrder(w);
-    if(fixed){
-      ranked=ranked.filter(r=>!fixed.includes(r.name));
-      fixed.reverse().forEach(n=>{
-        const obj={name:n,total:calc100(lensData.find(l=>l.name===n),w)};
-        ranked.unshift(obj);
+    function renderLabels(vals){
+      labelsEl.innerHTML='';
+      const [a,b,c]=vals.map(Number);
+      const seg=[a,b-a,c-b,100-c];
+      let acc=0;
+      seg.forEach((pct,i)=>{
+        const center=acc+pct/2;
+        const n=document.createElement('span');
+        n.className='segment-label name-label';
+        n.style.left=center+'%';
+        n.style.top=(slider.getBoundingClientRect().height/2+6)+'px';
+        n.textContent=names[i];
+        labelsEl.appendChild(n);
+        const p=document.createElement('span');
+        p.className='segment-label pct-label';
+        p.style.left=center+'%';
+        p.style.top=(slider.getBoundingClientRect().height/2+32)+'px';
+        p.textContent=pct.toFixed(1)+'%';
+        labelsEl.appendChild(p);
+        acc+=pct;
       });
     }
-    /* Lentis Comfort downshift */
-    const idxLC=ranked.findIndex(r=>r.name==='Lentis Comfort');
-    if(idxLC>-1 && idxLC<3){const [lc]=ranked.splice(idxLC,1); ranked.splice(3,0,lc);}
-    ranked=ranked.slice(0,9);
 
-    const res=document.getElementById('results'); res.innerHTML='';
-    ranked.forEach((l,i)=>{
-      setTimeout(()=>{
-        const div=document.createElement('div');
-        div.className='result-item rank-'+(i+1);
-        div.style.opacity='1';
-        div.textContent=`${i+1}位: ${l.name} (総合 ${l.total.toFixed(1)})`;
-        res.appendChild(div);
-      },i*550);
+    slider.noUiSlider.on('update',v=>{
+      renderLabels(v);
+      slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
     });
-  };
+
+    function customFirst(w){
+  const [c,d,pc,r] = w;
+  const far = c + d, near = pc + r;
+  // 条件: 鮮明さ+運転 ≥ 0.65 → Monofocal, PureSee, Vivity 固定
+  if (far >= 0.65) return ['Monofocal', 'PureSee', 'Vivity'];
+  // 読書重視
+  if (r > pc && near > far) return ['FineVision HP'];
+  // バランス型
+  if (w.every(v => Math.abs(v - 0.25) <= 0.02)) return ['PanOptix']; // 特別順位なし
+    }
+
+    function calcScore(l,w){return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;}
+
+    function diagnose(){
+      resultsEl.innerHTML='';
+      const [a,b,c]=slider.noUiSlider.get().map(Number);
+      const seg=[a,b-a,c-b,100-c];
+      const w=seg.map(v=>v/100);
+
+      /* 全レンズにスコアを付与 */
+      let ranked=lensData.map(l=>({name:l.name,total:calcScore(l,w)}));
+      ranked.sort((a,b)=>b.total-a.total);
+
+      /* 事前固定順位 */
+      const fixed=customFirst(w); // null or array
+      if(fixed){
+        // remove fixed names from ranked
+        ranked=ranked.filter(r=>!fixed.includes(r.name));
+        // prepend fixed in指定順
+        fixed.reverse().forEach(n=>{
+          const obj={name:n,total:calcScore(lensData.find(l=>l.name===n),w)};
+          ranked.unshift(obj);
+        });
+      }
+
+      /* Lentis Comfort を 4 位以下に */
+      const lcIdx=ranked.findIndex(r=>r.name==='Lentis Comfort');
+      if(lcIdx>-1 && lcIdx<3){const [lc]=ranked.splice(lcIdx,1);ranked.splice(3,0,lc);}      
+      ranked=ranked.slice(0,9);
+
+      ranked.forEach((l,i)=>{
+        setTimeout(()=>{
+          const row=document.createElement('div');
+          row.className='result-item rank-'+(i+1);
+          row.style.opacity='1';
+          row.textContent=`${i+1}位: ${l.name} (総合 ${l.total.toFixed(1)})`;
+          resultsEl.appendChild(row);
+        },i*600);
+      });
+    }
+
+    btn.addEventListener('click',diagnose);
+    renderLabels([25,50,75]);
   </script>
 </body>
 </html>
