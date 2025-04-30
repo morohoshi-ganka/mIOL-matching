@@ -93,13 +93,16 @@
     function customFirst(w){
   const [c,d,pc,r] = w;
   const far = c + d, near = pc + r;
+  // 条件: 鮮明さ+運転 ≥ 0.65 かつ パソコン ≥ 0.2 → Vivity, PureSee, Monofocal 固定
+  if (far >= 0.65 && pc >= 0.2) return ['Vivity', 'PureSee', 'Monofocal'];
   // 条件: 鮮明さ+運転 ≥ 0.65 → Monofocal, PureSee, Vivity 固定
   if (far >= 0.65) return ['Monofocal', 'PureSee', 'Vivity'];
   // 読書重視
   if (r > pc && near > far) return ['FineVision HP'];
   // バランス型
-  if (w.every(v => Math.abs(v - 0.25) <= 0.02)) return ['PanOptix']; // 特別順位なし
-    }
+  if (w.every(v => Math.abs(v - 0.25) <= 0.02)) return ['PanOptix'];
+  return null;
+}
 
     function calcScore(l,w){return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;}
 
