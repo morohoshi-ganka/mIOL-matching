@@ -4,15 +4,11 @@
   <meta charset="UTF-8" />
   <title>多焦点レンズ診断</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- noUiSlider CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css" rel="stylesheet" />
-
   <style>
     body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;max-width:600px;margin:auto}
     h1{text-align:center;margin-bottom:0.3em}
     p{text-align:center;color:#555;font-size:0.95em}
-
     /* slider */
     #multi-slider.noUi-target{height:26px;margin:50px 0;background:#ddd;border-radius:20px;box-shadow:inset 0 4px 8px rgba(0,0,0,.25),inset 0 -2px 4px rgba(0,0,0,.1)}
     .noUi-handle{height:34px;width:34px;border-radius:50%;top:-5px;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 4px 6px rgba(0,0,0,.45);transition:transform .1s}
@@ -23,17 +19,14 @@
     #multi-slider .noUi-connect:nth-child(2){background:#2196f3}
     #multi-slider .noUi-connect:nth-child(3){background:#ffc107}
     #multi-slider .noUi-connect:nth-child(4){background:#e91e63}
-
     /* labels */
     #labels{position:relative;height:0}
     .segment-label{position:absolute;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 1px rgba(255,255,255,.9)}
     .name-label{font-size:1.3em;color:#000;font-weight:600}
     .pct-label{font-size:1em;color:#000}
-
     /* button */
     #confirm-btn{display:block;margin:180px auto 0;padding:12px 28px;font-size:1.1em;background:#1976d2;color:#fff;border:none;border-radius:8px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:background .2s}
     #confirm-btn:hover{background:#1565c0}
-
     /* results */
     #results{margin-top:50px;font-size:1.05em}
     .result-item{margin:14px 0;opacity:0;transition:opacity .5s}
@@ -43,23 +36,26 @@
 <body>
   <h1>👁 多焦点レンズ診断</h1>
   <p>３本のハンドルで「鮮明さ ➜ 運転 ➜ パソコン ➜ 読書」のバランスを決め、<br>下の <strong>決定</strong> ボタンを押してください。</p>
-
   <div id="multi-slider"></div>
   <div id="labels"></div>
   <button id="confirm-btn">決定</button>
   <div id="results"></div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-    /* 正規化スコア: [contrast, driving, computer, reading] 順 */
+    /* 正規化スコア: [contrast, driving, computer, reading] */
     const lensData=[
-      {name:"FineVision HP",score:[21.72,12.99,16.49,25.00]},
-      {name:"PanOptix",    score:[22.22,17.01,19.23,21.26]},
-      {name:"Vivity",      score:[24.75,22.22,21.98,15.63]},
-      {name:"Monofocal",   score:[25.00,25.00,13.73, 5.26]}
+      {name:"FineVision HP",      score:[21.72,13.00,22.37,25.00]},
+      {name:"Gemetric",           score:[22.73,16.21,22.11,21.76]},
+      {name:"PanOptix",           score:[22.22,17.01,25.00,21.26]},
+      {name:"Acriva Trinova Pro", score:[23.48,15.00,21.84,22.50]},
+      {name:"Odyssey",            score:[23.48,17.79,21.05,20.00]},
+      {name:"Isopure",            score:[24.24,18.26,19.74,16.58]},
+      {name:"Vivity",             score:[24.75,22.22,21.98,15.63]},
+      {name:"Eyhance",            score:[25.00,23.95,15.79,10.26]},
+      {name:"Monofocal",          score:[25.00,25.00,13.73, 5.26]}
     ];
-
     const names=["鮮明さ","運転","パソコン","読書"];
+
     const slider=document.getElementById("multi-slider");
     const labelsEl=document.getElementById("labels");
     const resultsEl=document.getElementById("results");
@@ -67,59 +63,35 @@
 
     noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:"drag",tooltips:[true,true,true]});
 
-    /* ラベル更新 */
     function renderLabels(vals){
       labelsEl.innerHTML="";
       const [a,b,c]=vals.map(Number);
       const seg=[a,b-a,c-b,100-c];
-      let acc=0;
-      seg.forEach((pct,i)=>{
+      let acc=0; seg.forEach((pct,i)=>{
         const center=acc+pct/2;
-        // 名称
-        const nameSpan=document.createElement("span");
-        nameSpan.className="segment-label name-label";
-        nameSpan.style.left=center+"%";
-        nameSpan.style.top=(slider.getBoundingClientRect().height/2+6)+"px";
-        nameSpan.textContent=names[i];
-        labelsEl.appendChild(nameSpan);
-        // ％
+        const name=document.createElement("span");
+        name.className="segment-label name-label";
+        name.style.left=center+"%";
+        name.style.top=(slider.getBoundingClientRect().height/2+6)+"px";
+        name.textContent=names[i]; labelsEl.appendChild(name);
         const pctSpan=document.createElement("span");
         pctSpan.className="segment-label pct-label";
         pctSpan.style.left=center+"%";
         pctSpan.style.top=(slider.getBoundingClientRect().height/2+30)+"px";
-        pctSpan.textContent=pct.toFixed(1)+"%";
-        labelsEl.appendChild(pctSpan);
+        pctSpan.textContent=pct.toFixed(1)+"%"; labelsEl.appendChild(pctSpan);
         acc+=pct;
       });
     }
+    slider.noUiSlider.on("update",v=>{renderLabels(v);slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');});
 
-    slider.noUiSlider.on("update",vals=>{
-      renderLabels(vals);
-      slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
-    });
-
-    /* 診断 */
     function diagnose(){
       resultsEl.innerHTML="";
       const [a,b,c]=slider.noUiSlider.get().map(Number);
       if(!(a<=b&&b<=c))return;
       const weights=[a,b-a,c-b,100-c].map(v=>v/100);
-      const ranked=lensData.map(l=>{
-        const score=l.score.reduce((sum,v,i)=>sum+v*weights[i],0);
-        return {...l,total:score};
-      }).sort((p,q)=>q.total-p.total).slice(0,3);
-
-      ranked.forEach((l,i)=>{
-        setTimeout(()=>{
-          const div=document.createElement("div");
-          div.className="result-item rank-"+(i+1);
-          div.style.opacity="1";
-          div.textContent=`${i+1}位: ${l.name} (スコア:${l.total.toFixed(2)})`;
-          resultsEl.appendChild(div);
-        },i*600);
-      });
+      const ranked=lensData.map(l=>({name:l.name,total:l.score.reduce((s,v,i)=>s+v*weights[i],0)})).sort((p,q)=>q.total-p.total).slice(0,3);
+      ranked.forEach((l,i)=>{setTimeout(()=>{const d=document.createElement("div");d.className="result-item rank-"+(i+1);d.style.opacity="1";d.textContent=`${i+1}位: ${l.name} (スコア:${l.total.toFixed(2)})`;resultsEl.appendChild(d);},i*600);});
     }
-
     btn.addEventListener("click",diagnose);
     renderLabels([25,50,75]);
   </script>
