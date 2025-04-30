@@ -9,9 +9,10 @@
     body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px;max-width:600px;margin:auto}
     h1{text-align:center;margin-bottom:0.3em}
     p{text-align:center;color:#555;font-size:0.95em}
+
     /* slider */
-    #multi-slider.noUi-target{height:26px;margin:50px 0;background:#ddd;border-radius:20px;box-shadow:inset 0 4px 8px rgba(0,0,0,.25),inset 0 -2px 4px rgba(0,0,0,.1)}
-    .noUi-handle{height:34px;width:34px;border-radius:50%;top:-5px;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 4px 6px rgba(0,0,0,.45);transition:transform .1s}
+    #multi-slider.noUi-target{height:28px;margin:50px 0;background:#ddd;border-radius:22px;box-shadow:inset 0 4px 9px rgba(0,0,0,.28),inset 0 -3px 4px rgba(0,0,0,.12)}
+    .noUi-handle{height:36px;width:36px;border-radius:50%;top:-6px;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 4px 7px rgba(0,0,0,.48);transition:transform .1s}
     .noUi-handle:hover{transform:scale(1.12)}
     .noUi-tooltip{display:none!important}
     .noUi-connect{background:transparent}
@@ -19,30 +20,35 @@
     #multi-slider .noUi-connect:nth-child(2){background:#2196f3}
     #multi-slider .noUi-connect:nth-child(3){background:#ffc107}
     #multi-slider .noUi-connect:nth-child(4){background:#e91e63}
+
     /* labels */
     #labels{position:relative;height:0}
     .segment-label{position:absolute;pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 1px rgba(255,255,255,.9)}
-    .name-label{font-size:1.3em;color:#000;font-weight:600}
+    .name-label{font-size:1.4em;color:#000;font-weight:700}
     .pct-label{font-size:1em;color:#000}
+
     /* button */
-    #confirm-btn{display:block;margin:180px auto 0;padding:12px 28px;font-size:1.1em;background:#1976d2;color:#fff;border:none;border-radius:8px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:background .2s}
+    #confirm-btn{display:block;margin:220px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s}
     #confirm-btn:hover{background:#1565c0}
+
     /* results */
-    #results{margin-top:50px;font-size:1.05em}
-    .result-item{margin:14px 0;opacity:0;transition:opacity .5s}
-    .result-item.rank-1{font-size:1.4em;font-weight:700}
+    #results{margin-top:60px;font-size:1.08em}
+    .result-item{margin:18px 0;opacity:0;transition:opacity .5s}
+    .result-item.rank-1{font-size:1.5em;font-weight:800}
   </style>
 </head>
 <body>
   <h1>👁 多焦点レンズ診断</h1>
-  <p>３本のハンドルで「鮮明さ ➜ 運転 ➜ パソコン ➜ 読書」のバランスを決め、<br>下の <strong>決定</strong> ボタンを押してください。</p>
+  <p>３本のハンドルで <strong>鮮明さ ➜ 運転 ➜ パソコン ➜ 読書</strong> のバランスを決め<br>下の <strong>決定</strong> ボタンを押してください。</p>
+
   <div id="multi-slider"></div>
   <div id="labels"></div>
   <button id="confirm-btn">決定</button>
   <div id="results"></div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-    /* 正規化スコア: [contrast, driving, computer, reading] */
+    /* 正規化スコア: [contrast, driving, computer, reading]  */
     const lensData=[
       {name:"FineVision HP",      score:[21.72,13.00,22.37,25.00]},
       {name:"Gemetric",           score:[22.73,16.21,22.11,21.76]},
@@ -54,46 +60,80 @@
       {name:"Eyhance",            score:[25.00,23.95,15.79,10.26]},
       {name:"Monofocal",          score:[25.00,25.00,13.73, 5.26]}
     ];
+
+    const slider=document.getElementById('multi-slider');
+    const labelsEl=document.getElementById('labels');
+    const resultsEl=document.getElementById('results');
+    const btn=document.getElementById('confirm-btn');
     const names=["鮮明さ","運転","パソコン","読書"];
 
-    const slider=document.getElementById("multi-slider");
-    const labelsEl=document.getElementById("labels");
-    const resultsEl=document.getElementById("results");
-    const btn=document.getElementById("confirm-btn");
+    /* スライダー初期化 */
+    noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
 
-    noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:"drag",tooltips:[true,true,true]});
+    /* 名前ラベルは一度だけ固定で描画 */
+    (function initNameLabels(){
+      const init=[25,50,75];
+      const seg=[init[0],init[1]-init[0],init[2]-init[1],100-init[2]];
+      let acc=0;
+      seg.forEach((pct,i)=>{
+        const center=acc+pct/2;
+        const span=document.createElement('span');
+        span.className='segment-label name-label';
+        span.style.left=center+'%';
+        span.style.top=(slider.getBoundingClientRect().height/2+6)+'px';
+        span.textContent=names[i];
+        labelsEl.appendChild(span);
+        acc+=pct;
+      });
+    })();
 
-    function renderLabels(vals){
-      labelsEl.innerHTML="";
+    /* %ラベル更新 */
+    function updatePctLabels(vals){
+      document.querySelectorAll('.pct-label').forEach(el=>el.remove());
       const [a,b,c]=vals.map(Number);
       const seg=[a,b-a,c-b,100-c];
-      let acc=0; seg.forEach((pct,i)=>{
+      let acc=0;
+      seg.forEach((pct,i)=>{
         const center=acc+pct/2;
-        const name=document.createElement("span");
-        name.className="segment-label name-label";
-        name.style.left=center+"%";
-        name.style.top=(slider.getBoundingClientRect().height/2+6)+"px";
-        name.textContent=names[i]; labelsEl.appendChild(name);
-        const pctSpan=document.createElement("span");
-        pctSpan.className="segment-label pct-label";
-        pctSpan.style.left=center+"%";
-        pctSpan.style.top=(slider.getBoundingClientRect().height/2+30)+"px";
-        pctSpan.textContent=pct.toFixed(1)+"%"; labelsEl.appendChild(pctSpan);
+        const lbl=document.createElement('span');
+        lbl.className='segment-label pct-label';
+        lbl.style.left=center+'%';
+        lbl.style.top=(slider.getBoundingClientRect().height/2+32)+'px';
+        lbl.textContent=pct.toFixed(1)+'%';
+        labelsEl.appendChild(lbl);
         acc+=pct;
       });
     }
-    slider.noUiSlider.on("update",v=>{renderLabels(v);slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');});
 
+    slider.noUiSlider.on('update',vals=>{
+      updatePctLabels(vals);
+      slider.querySelectorAll('.noUi-tooltip').forEach(t=>t.style.display='none');
+    });
+
+    /* 診断ロジック */
     function diagnose(){
-      resultsEl.innerHTML="";
+      resultsEl.innerHTML='';
       const [a,b,c]=slider.noUiSlider.get().map(Number);
       if(!(a<=b&&b<=c))return;
-      const weights=[a,b-a,c-b,100-c].map(v=>v/100);
-      const ranked=lensData.map(l=>({name:l.name,total:l.score.reduce((s,v,i)=>s+v*weights[i],0)})).sort((p,q)=>q.total-p.total).slice(0,3);
-      ranked.forEach((l,i)=>{setTimeout(()=>{const d=document.createElement("div");d.className="result-item rank-"+(i+1);d.style.opacity="1";d.textContent=`${i+1}位: ${l.name} (スコア:${l.total.toFixed(2)})`;resultsEl.appendChild(d);},i*600);});
+      const seg=[a,b-a,c-b,100-c];
+      const weights=seg.map(v=>v/100);
+      const ranked=lensData.map(l=>({name:l.name,total:l.score.reduce((sum,v,i)=>sum+v*weights[i],0)}))
+                          .sort((p,q)=>q.total-p.total)
+                          .slice(0,3);
+      ranked.forEach((l,i)=>{
+        setTimeout(()=>{
+          const row=document.createElement('div');
+          row.className='result-item rank-'+(i+1);
+          row.style.opacity='1';
+          row.textContent=`${i+1}位: ${l.name} (スコア:${l.total.toFixed(2)})`;
+          resultsEl.appendChild(row);
+        },i*700);
+      });
     }
-    btn.addEventListener("click",diagnose);
-    renderLabels([25,50,75]);
+
+    btn.addEventListener('click',diagnose);
+    /* 初期%ラベル */
+    updatePctLabels([25,50,75]);
   </script>
 </body>
 </html>
