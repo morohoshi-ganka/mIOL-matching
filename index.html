@@ -40,7 +40,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
   <script>
-    /* スコア: [Contrast, Driving, Computer, Reading] */
     const lensData=[
       {name:"Gemetric",           score:[22.73,16.21,22.11,21.76]},
       {name:"PanOptix",           score:[22.22,17.00,25.00,21.26]},
@@ -50,15 +49,15 @@
       {name:"PureSee",            score:[24.20,23.00,19.21,15.53]},
       {name:"Symfony",            score:[23.23,10.00,19.74,15.26]},
       {name:"Lentis Comfort",     score:[23.99,19.00,13.16,10.00]},
-      {name:"Monofocal",          score:[25.00,25.00,7.89, 5.26]},
+      {name:"Monofocal",          score:[25.00,25.00,7.89,5.26]},
       {name:"FineVision HP",      score:[21.72,13.00,22.37,25.00]}
     ];
 
-    const slider=document.getElementById('multi-slider');
-    const labelsEl=document.getElementById('labels');
-    const resultsEl=document.getElementById('results');
-    const btn=document.getElementById('confirm-btn');
-    const names=["鮮明さ","運転","パソコン","読書"];
+    const slider = document.getElementById('multi-slider');
+    const labelsEl = document.getElementById('labels');
+    const resultsEl = document.getElementById('results');
+    const btn = document.getElementById('confirm-btn');
+    const names = ["鮮明さ","運転","パソコン","読書"];
 
     noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
 
@@ -91,20 +90,16 @@
     });
 
     function customFirst(w){
-  const [c,d,pc,r] = w;
-  const far = c + d, near = pc + r;
-  // 条件: 鮮明さ+運転 ≥ 0.65 かつ パソコン ≥ 0.2 → Vivity, PureSee, Monofocal 固定
-  if (far >= 0.65 && pc >= 0.2) return ['Vivity', 'PureSee', 'Monofocal'];
-  // 条件: 鮮明さ+運転 ≥ 0.65 → Monofocal, PureSee, Vivity 固定
-  if (far >= 0.65) return ['Monofocal', 'PureSee', 'Vivity'];
-  // 読書重視
-  if (r > pc && near > far) return ['FineVision HP'];
-  // バランス型
-  if (w.every(v => Math.abs(v - 0.25) <= 0.02)) return ['PanOptix'];
-  return null;
-}
+      const [c,d,pc,r] = w;
+      const far = c + d, near = pc + r;
+      if (far >= 0.65 && pc >= 0.2) return ['Vivity', 'PureSee', 'Monofocal'];
+      if (far >= 0.65) return ['Monofocal', 'PureSee', 'Vivity'];
+      if (r > pc && near > far) return ['FineVision HP'];
+      if (w.every(v => Math.abs(v - 0.25) <= 0.02)) return ['PanOptix'];
+      return null;
+    }
 
-    function calcScore(l,w){return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;}
+    function calcScore(l,w){ return l.score.reduce((s,v,i)=>s+v*w[i],0)*4; }
 
     function diagnose(){
       resultsEl.innerHTML='';
@@ -112,40 +107,43 @@
       const seg=[a,b-a,c-b,100-c];
       const w=seg.map(v=>v/100);
 
-      /* 全レンズにスコアを付与 */
-      let ranked=lensData.map(l=>({name:l.name,total:calcScore(l,w)}));
-      ranked.sort((a,b)=>b.total-a.total);
+      let ranked = lensData.map(l => ({ name: l.name, total: calcScore(l, w) }))
+                           .sort((a, b) => b.total - a.total);
 
-      /* 事前固定順位 */
-      const fixed=customFirst(w); // null or array
-      if(fixed){
-        // remove fixed names from ranked
-        ranked=ranked.filter(r=>!fixed.includes(r.name));
-        // prepend fixed in指定順
+      const fixed = customFirst(w);
+      if (fixed){
+        ranked = ranked.filter(r => !fixed.includes(r.name));
         fixed.reverse().forEach(n=>{
-          const obj={name:n,total:calcScore(lensData.find(l=>l.name===n),w)};
+          const obj = { name: n, total: calcScore(lensData.find(l => l.name === n), w) };
           ranked.unshift(obj);
         });
       }
 
-      /* Lentis Comfort を 4 位以下に */
-      const lcIdx=ranked.findIndex(r=>r.name==='Lentis Comfort');
-      if(lcIdx>-1 && lcIdx<3){const [lc]=ranked.splice(lcIdx,1);ranked.splice(3,0,lc);}      
-      ranked=ranked.slice(0,9);
+      const lcIdx = ranked.findIndex(r => r.name === 'Lentis Comfort');
+      if (lcIdx > -1 && lcIdx < 3){ const [lc] = ranked.splice(lcIdx,1); ranked.splice(3,0,lc); }
+
+      ranked = ranked.slice(0,9);
 
       ranked.forEach((l,i)=>{
         setTimeout(()=>{
-          const row=document.createElement('div');
-          row.className='result-item rank-'+(i+1);
-          row.style.opacity='1';
-          row.textContent=`${i+1}位: ${l.name} (総合 ${l.total.toFixed(1)})`;
+          const row = document.createElement('div');
+          row.className = 'result-item rank-'+(i+1);
+          row.style.opacity = '1';
+          row.textContent = `${i+1}位: ${l.name} (総合 ${l.total.toFixed(1)})`;
           resultsEl.appendChild(row);
-        },i*600);
+        }, i*600);
       });
     }
 
-    btn.addEventListener('click',diagnose);
+    btn.addEventListener('click', diagnose);
     renderLabels([25,50,75]);
   </script>
+
+  <div style="margin-top:60px; font-size:0.85em; color:#555; line-height:1.6;">
+    <p>※「鮮明さ」は瞳孔径3mmの光学ロスを参考にしています。</p>
+    <p>※「運転」は遠方への光エネルギー配分と、異常光視症の少なさを反映しています。</p>
+    <p>※「パソコン」は焦点が60cmにどれだけ近いかを参考にしています。</p>
+    <p style="margin-top:1em; text-align:center;">Copyright 2025 Morohoshi Eye Clinic. All rights reserved.</p>
+  </div>
 </body>
 </html>
