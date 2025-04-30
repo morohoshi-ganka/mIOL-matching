@@ -91,11 +91,17 @@
     });
 
     function customFirst(w){
-      const [c,d,pc,r]=w; const far=c+d,near=pc+r;
-      if(far>=0.75) return 'Monofocal';
-      if(r>pc && near>far) return 'FineVision HP';
-      if(w.every(v=>Math.abs(v-0.25)<=0.02)) return 'PanOptix';
-      return null;
+      const [c,d,pc,r]=w;
+      const far=c+d, near=pc+r;
+      // 条件1: 鮮明さ+運転 ≥ 65% → Monofocal, PureSee, Vivity をトップ 3 固定
+      if(far>=0.65){ return ['Monofocal','PureSee','Vivity']; }
+      // 条件2: 鮮明さ+運転 ≥ 75% (旧) → Monofocal
+      if(far>=0.75){ return ['Monofocal']; }
+      // 条件3: 読書>パソコン & 近用>遠用 → FineVision HP
+      if(r>pc && near>far){ return ['FineVision HP']; }
+      // 条件4: バランス型
+      if(w.every(v=>Math.abs(v-0.25)<=0.02)){ return ['PanOptix']; }
+      return null; // 特別順位なし
     }
 
     function calcScore(l,w){return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;}
