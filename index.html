@@ -24,9 +24,9 @@
     .pct-label{font-size:1em;color:#000}
     #confirm-btn{margin:200px auto 0;padding:14px 34px;font-size:1.15em;background:#1976d2;color:#fff;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 5px rgba(0,0,0,.35);transition:background .2s;display:block}
     #confirm-btn:hover{background:#1565c0}
-    #results{text-align:left;margin-top:60px;font-size:1.08em}
-    .result-item{margin:14px 0;opacity:0;transition:opacity .5s; white-space:pre-wrap}
-    .result-item.rank-1{font-size:1.5em;font-weight:800}
+    #results{margin-top:60px;font-size:1.08em;text-align:left;}
+    .result-item{margin:18px 0;opacity:0;transition:opacity .5s}
+    .result-item.rank-1{text-align:center;font-size:1.5em;font-weight:800}
   </style>
 </head>
 <body>
@@ -53,11 +53,11 @@
       {name:"FineVision HP", score:[21.72,13.00,22.37,25.00]}
     ];
 
-    const slider = document.getElementById('multi-slider');
-    const labelsEl = document.getElementById('labels');
-    const resultsEl = document.getElementById('results');
-    const btn = document.getElementById('confirm-btn');
-    const names = ["鮮明さ","運転","パソコン","読書"];
+    const slider=document.getElementById('multi-slider');
+    const labelsEl=document.getElementById('labels');
+    const resultsEl=document.getElementById('results');
+    const btn=document.getElementById('confirm-btn');
+    const names=["鮮明さ","運転","パソコン","読書"];
 
     noUiSlider.create(slider,{start:[25,50,75],connect:[true,true,true,true],range:{min:0,max:100},step:1,behaviour:'drag',tooltips:[true,true,true]});
 
@@ -99,41 +99,32 @@
       return null;
     }
 
-    function calcScore(l,w){
-      return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;
-    }
+    function calcScore(l,w){return l.score.reduce((s,v,i)=>s+v*w[i],0)*4;}
 
     function diagnose(){
       resultsEl.innerHTML='';
       const [a,b,c]=slider.noUiSlider.get().map(Number);
       const seg=[a,b-a,c-b,100-c];
       const w=seg.map(v=>v/100);
-
-      let ranked = lensData.map(l=>({name:l.name,total:calcScore(l,w)}));
+      let ranked=lensData.map(l=>({name:l.name,total:calcScore(l,w)}));
       ranked.sort((a,b)=>b.total-a.total);
-
-      const fixed = customFirst(w);
+      const fixed=customFirst(w);
       if(fixed){
-        ranked = ranked.filter(r=>!fixed.includes(r.name));
+        ranked=ranked.filter(r=>!fixed.includes(r.name));
         fixed.reverse().forEach(n=>{
-          const obj = {name:n,total:calcScore(lensData.find(l=>l.name===n),w)};
+          const obj={name:n,total:calcScore(lensData.find(l=>l.name===n),w)};
           ranked.unshift(obj);
         });
       }
-
       const lcIdx=ranked.findIndex(r=>r.name==='Lentis Comfort');
-      if(lcIdx>-1 && lcIdx<3){
-        const [lc] = ranked.splice(lcIdx,1);
-        ranked.splice(3,0,lc);
-      }
-
-      ranked = ranked.slice(0,9);
-
+      if(lcIdx>-1 && lcIdx<3){const [lc]=ranked.splice(lcIdx,1);ranked.splice(3,0,lc);}
+      ranked=ranked.slice(0,9);
       ranked.forEach((l,i)=>{
         setTimeout(()=>{
           const row=document.createElement('div');
           row.className='result-item rank-'+(i+1);
           row.style.opacity='1';
+          row.style.textAlign = i === 0 ? 'center' : 'left';
           row.textContent=`${i+1}位: ${l.name} (総合 ${l.total.toFixed(1)})`;
           resultsEl.appendChild(row);
         },i*600);
@@ -143,14 +134,13 @@
     btn.addEventListener('click',diagnose);
     renderLabels([25,50,75]);
   </script>
-
   <div style="margin-top:60px; font-size:0.85em; color:#555; line-height:1.6;">
     <div style="text-align:left">
       <p style="margin:0">※「鮮明さ」は瞳孔径3mmの光学ロスを参考にしています。</p>
       <p style="margin:0">※「運転」は遠方への光エネルギー配分と、異常光視症の少なさを反映しています。</p>
       <p style="margin:0">※「パソコン」は焦点が60cmにどれだけ近いかを参考にしています。</p>
       <p style="margin:0">※「鮮明さ」は瞳孔径3mmの光学ロスを参考にしています。</p>
-      <p style="margin-top:1em;">Copyright 2025 Morohoshi Eye Clinic. All rights reserved.</p>
+      <p style="margin-top:1em; margin-bottom:0;">Copyright 2025 Morohoshi Eye Clinic. All rights reserved.</p>
     </div>
   </div>
 </body>
