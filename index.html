@@ -120,15 +120,18 @@
       /* 先頭固定レンズ判定 */
       const first=customFirst(weights);
       let ranked;
-      const calcScore=l=>l.score.reduce((s,v,i)=>s+v*weights[i],0);
+      const calcScore = l => {
+        const raw = l.score.reduce((s,v,i)=>s+v*weights[i],0); // 0‒25
+        return raw * 4; // 100 点満点にスケール
+      };
 
       if(first){
         const firstObj=lensData.find(l=>l.name===first);
         const others=lensData.filter(l=>l.name!==first);
         const rest=others.map(l=>({name:l.name,total:calcScore(l)})).sort((a,b)=>b.total-a.total);
-        ranked=[{name:first,total:calcScore(firstObj)},...rest].slice(0,3);
+        ranked=[{name:first,total:calcScore(firstObj)},...rest].slice(0,9);
       }else{
-        ranked=lensData.map(l=>({name:l.name,total:calcScore(l)})).sort((a,b)=>b.total-a.total).slice(0,3);
+        ranked=lensData.map(l=>({name:l.name,total:calcScore(l)})).sort((a,b)=>b.total-a.total).slice(0,9);
       }
 
       ranked.forEach((l,i)=>{
