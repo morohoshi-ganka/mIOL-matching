@@ -109,7 +109,6 @@
     function diagnose(){
       resultsEl.innerHTML='';
       const [a,b,c]=slider.noUiSlider.get().map(Number);
-      if(!(a<=b&&b<=c))return;
       const seg=[a,b-a,c-b,100-c];
       const w=seg.map(v=>v/100);
 
